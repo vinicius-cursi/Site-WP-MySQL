@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aks01-deploy-wp
+  namespace: site-empresa
+  labels:
+    app: wordpress
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: frontend
+    spec:
+      containers:
+      - image: wordpress:5.8-apache
+        name: wordpress
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: svc-aks01-mysql
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: aks01-mysql-pass01
+              key: password
+        ports:
+        - containerPort: 80
+          name: wordpress
+        volumeMounts:
+        - name: wp-pv-storage
+          mountPath: /var/www/html
+      volumes:
+      - name: wp-pv-storage
+        persistentVolumeClaim:
+          claimName: pvc-aks-wp-st01

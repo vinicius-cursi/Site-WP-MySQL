@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aks01-mysql-01
+  namespace: site-empresa
+  labels:
+    app: wordpress
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+      tier: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: mysql
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: aks01-mysql-pass01
+              key: password
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysql-pv-storage
+          mountPath: "/var/lib/mysql"
+      volumes:
+      - name: mysql-pv-storage
+        persistentVolumeClaim:
+          claimName: aks-mysql-st01
